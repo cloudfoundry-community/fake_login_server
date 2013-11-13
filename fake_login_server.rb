@@ -75,14 +75,13 @@ helpers do
   end
  
   def token_response_for_user(email)
-    auth_code = uaa_request_authorization_code(email)
-    uaa_request_access_token(auth_code)
-   end
+    uaa_request_authorization_code(email)
+  end
 
   def uaa_request_authorization_code(email)
     request_params = {
       "username" => "#{Yajl::Encoder.encode("username" => email)}", 
-      "response_type" => "code",
+      "response_type" => "token",
       "source" => "login",
       "client_id" => "cf",
       "redirect_uri" => "#{UAA_TOKEN_SERVER}/oauth/token"
@@ -93,33 +92,15 @@ helpers do
     }
     uaa_response = post("#{UAA_TOKEN_SERVER}/oauth/authorize", request_params, request_headers)
 
-    # save session cookie
-    @uaa_session_cookies = uaa_response.cookies
+    # FIXME find a better way to convert the location header to json
+    location_header = uaa_response.headers[:location]
+    location_params = CGI::parse(location_header.match(/#(.*)/).captures[0])
+    location_params_hash = Hash[*location_params.flatten(2)]
+    
+    logger.debug location_params_hash
 
-    # fetch auth code from location header
-    auth_code = uaa_response.headers[:location].match(/code=([^&]+)/).captures[0]
-
-    logger.debug "uaa auth request headers: #{uaa_response.headers}"
-
-    # return authorization code 
-    auth_code
+    location_params_hash.to_json
   end   
-
-  def uaa_request_access_token(auth_code)
-    request_params = { 
-      :code => auth_code,
-      :grant_type => "authorization_code"
-    }
-    request_headers = { 
-      :cookies => @uaa_session_cookie,
-      :authorization => "Basic #{Base64.strict_encode64("login:#{LOGIN_CLIENT_SECRET}")}",
-      :accept => :json, 
-    }
-    uaa_response = post("#{UAA_TOKEN_SERVER}/oauth/token", request_params, request_headers)
-
-    # retrun access_token body
-    uaa_response.body
-  end
 
   def login_access_token
     # Get an access token for the login client
