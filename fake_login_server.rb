@@ -45,6 +45,7 @@ end
 
 post '/oauth/token' do
   log_request_and_params
+  set_headers
   # should check for valid user pw combination
   if params["username"] && params["password"]
     token_response_for_user(params["username"])
