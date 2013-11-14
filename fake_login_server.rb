@@ -4,8 +4,6 @@ require 'yajl'
 require 'yajl/json_gem'
 require 'logger'
 require 'base64'
-require 'active_support'
-require 'active_support/core_ext/hash'
 
 set :bind, '0.0.0.0'
 
@@ -53,7 +51,7 @@ post '/oauth/token' do
    #FIXME Implement token refresh
   else
     halt 404
-  end 
+  end
 end
 
 get '/*' do
@@ -74,40 +72,69 @@ helpers do
   def set_headers
     response.headers['content-type'] = 'application/json;charset=UTF-8'
   end
- 
-  def token_response_for_user(email)
-    uaa_request_authorization_code(email)
-  end
 
-  def uaa_request_authorization_code(email)
+  def token_response_for_user(email)
     request_params = {
-      "username" => "#{Yajl::Encoder.encode("username" => email)}", 
+      "username" => "#{Yajl::Encoder.encode("username" => email)}",
       "response_type" => "token",
       "source" => "login",
       "client_id" => "cf",
       "redirect_uri" => "#{UAA_TOKEN_SERVER}/oauth/token"
     }
     request_headers = {
-      :authorization => "bearer #{login_access_token()}", 
+      :authorization => "bearer #{login_access_token()}",
       :accept => :json
     }
     uaa_response = post("#{UAA_TOKEN_SERVER}/oauth/authorize", request_params, request_headers)
 
-    # FIXME find a better way to convert the location header to json
+    # example location header:
+    # https://uaa.10.244.0.34.xip.io/oauth/token;jsessionid=example_session_id# \
+    # access_token=example_access_token&token_type=bearer&expires_in=599& \
+    # scope=scim.read%20cloud_controller.admin%20password.write%20scim.write%20cloud_controller.write%20openid%20cloud_controller.read&jti=example_jti
     location_header = uaa_response.headers[:location]
-    location_params = CGI::parse(location_header.match(/#(.*)/).captures[0])
-    location_params_hash = Hash[*location_params.flatten(2)]
-    
-    logger.debug location_params_hash
 
+    # example location params
+    # {
+    #   "access_token" => ["exmaple_access_token"],
+    #   "token_type"=>["bearer"],
+    #   "expires_in"=>["599"],
+    #   "scope"=>["scim.read cloud_controller.admin password.write scim.write cloud_controller.write openid cloud_controller.read"],
+    #   "jti"=>["example_jti"]
+    # }
+    location_params = CGI::parse(location_header.match(/#(.*)/).captures[0])
+
+    # example location params hash
+    # {
+    #   "access_token" => "exmaple_access_token",
+    #   "token_type"=>"bearer",
+    #   "expires_in"=>"599",
+    #   "scope"=>"scim.read cloud_controller.admin password.write scim.write cloud_controller.write openid cloud_controller.read",
+    #   "jti"=>"example_jti"
+    # }
+    location_params_hash = Hash[*location_params.flatten(2)]
+
+    # example location params hash in json
+    # {
+    #   "access_token" : "exmaple_access_token",
+    #   "token_type" : "bearer",
+    #   "expires_in" : "599",
+    #   "scope" : "scim.read cloud_controller.admin password.write scim.write cloud_controller.write openid cloud_controller.read",
+    #   "jti" : "example_jti"
+    # }
     location_params_hash.to_json
-  end   
+  end
 
   def login_access_token
+    request_params = {
+      "response_type" => "token",
+      "grant_type" => "client_credentials"
+    }
+    request_headers = {
+      :accept => :json,
+      :authorization => "Basic #{Base64.strict_encode64("login:#{LOGIN_CLIENT_SECRET}")}"
+    }
     # Get an access token for the login client
-    login_response = post("#{UAA_TOKEN_SERVER}/oauth/token", \
-                           {"response_type" => "token", "grant_type" => "client_credentials"}, \
-                           {:accept => :json, :authorization => "Basic #{Base64.strict_encode64("login:#{LOGIN_CLIENT_SECRET}")}"})
+    login_response = post("#{UAA_TOKEN_SERVER}/oauth/token", request_params, request_headers)
     logger.debug "#{login_response.body.inspect}"
     access_token = Yajl::Parser.new.parse(login_response.body)["access_token"]
   end
