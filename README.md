@@ -11,10 +11,9 @@ After the local cloudfoundry setup make the following changes to your manifest.
 ### Cloudfoundry manifest changes
 - Remove the `login_z1` job.
 - Add the following properties:
-```
-login.url http://192.168.176.1:4567
-uaa.clients.redirect-uri https://uaa.10.244.0.34.xip.io/oauth/token
-```
+`login.url http://192.168.176.1:4567`
+`uaa.clients.redirect-uri https://uaa.10.244.0.34.xip.io/oauth/token`
+
 Apply the above changes to your cloudfoundry by running `bosh deploy`.
 
 ### Running the login server
