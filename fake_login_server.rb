@@ -14,31 +14,31 @@ LOGIN_CLIENT_SECRET = ENV['LOGIN_CLIENT_SECRET'] || "login-secret"
 get '/login' do
   log_request_and_params
   set_headers
-  '{
-    "timestamp": "2013-10-24T10:46:06-0700",
-    "app": {
-      "artifact": "cloudfoundry-login-server",
-      "description": "Cloud Foundry Login Server",
-      "name": "Cloud Foundry Login",
-      "version": "1.2.7"
+  "{
+    \"timestamp\": \"2013-10-24T10:46:06-0700\",
+    \"app\": {
+      \"artifact\": \"cloudfoundry-login-server\",
+      \"description\": \"Cloud Foundry Login Server\",
+      \"name\": \"Cloud Foundry Login\",
+      \"version\": \"1.2.7\"
     },
-    "links": {
-      "register": "https://console.run.pivotal.io/register",
-      "passwd": "https://console.run.pivotal.io/password_resets/new",
-      "home": "https://console.run.pivotal.io",
-      "login": "https://login.run.pivotal.io",
-      "uaa": "https://uaa.run.pivotal.io"
+    \"links\": {
+      \"register\": \"https://console.run.pivotal.io/register\",
+      \"passwd\": \"https://console.run.pivotal.io/password_resets/new\",
+      \"home\": \"https://console.run.pivotal.io\",
+      \"login\": \"https://login.run.pivotal.io\",
+      \"uaa\": \"#{UAA_TOKEN_SERVER}\"
     },
-    "analytics": {
-      "code": "UA-22181585-29",
-      "domain": "pivotal.io"
+    \"analytics\": {
+      \"code\": \"UA-22181585-29\",
+      \"domain\": \"pivotal.io\"
     },
-    "commit_id": "f5d7a7d",
-    "prompts": {
-      "username": ["text", "Email"],
-      "password": ["password", "Password"]
+    \"commit_id\": \"f5d7a7d\",
+    \"prompts\": {
+      \"username\": [\"text\", \"Email\"],
+      \"password\": [\"password\", \"Password\"]
     }
-  }'
+  }"
 end
 
 post '/oauth/token' do
