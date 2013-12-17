@@ -76,6 +76,9 @@ helpers do
   def token_response_for_user(email)
     request_params = {
       "username" => "#{Yajl::Encoder.encode("username" => email)}",
+      "email" => "#{Yajl::Encoder.encode("username" => email)}",
+      "given_name" => "Foo",
+      "family_name" => "Bar",
       "response_type" => "token",
       "source" => "login",
       "client_id" => "cf",
