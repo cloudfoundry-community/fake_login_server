@@ -9,9 +9,9 @@ To use the login-server a local [bosh-lite cloudfoundry install](https://github.
 After the local cloudfoundry setup make the following changes to your manifest.
 
 ### Cloudfoundry manifest changes
-Remove the `login_z1` job.
-Remove `uaa.clients.login
-Add the following properties:
+- Remove the `login_z1` job.
+- Remove `uaa.clients.login`.
+- Add the following properties:
 
 ```
 login.url: http://192.168.176.1:4567
