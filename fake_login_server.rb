@@ -54,6 +54,10 @@ post '/oauth/token' do
   end
 end
 
+get '/Users' do
+  redirect UAA_TOKEN_SERVER + request.fullpath
+end
+
 get '/*' do
   log_request_and_params
 end
@@ -61,7 +65,6 @@ end
 post '/*' do
   log_request_and_params
 end
-
 
 helpers do
   def log_request_and_params
