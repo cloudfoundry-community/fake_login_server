@@ -47,8 +47,8 @@ post '/oauth/token' do
   # should check for valid user pw combination
   if params["username"] && params["password"]
     token_response_for_user(params["username"])
-  elsif params["grant_type"]
-   #FIXME Implement token refresh
+  elsif params["grant_type"] == "refresh_token"
+    token_response_for_user(user_for_refresh_token(params["refresh_token"]))
   else
     halt 404
   end
@@ -127,7 +127,18 @@ helpers do
     #   "scope" : "scim.read cloud_controller.admin password.write scim.write cloud_controller.write openid cloud_controller.read",
     #   "jti" : "example_jti"
     # }
+    location_params_hash["refresh_token"] = refresh_token_for_user(email)
+    logger.debug location_params_hash.inspect
     location_params_hash.to_json
+  end
+
+  def refresh_token_for_user(email)
+    #Should implement secure refresh token generation
+    Base64.strict_encode64(email)
+  end
+
+  def user_for_refresh_token(token)
+    Base64.strict_decode64(token)
   end
 
   def login_access_token
@@ -141,7 +152,7 @@ helpers do
     }
     # Get an access token for the login client
     login_response = post("#{UAA_TOKEN_SERVER}/oauth/token", request_params, request_headers)
-    logger.debug "#{login_response.body.inspect}"
+    # logger.debug "#{login_response.body.inspect}"
     access_token = Yajl::Parser.new.parse(login_response.body)["access_token"]
   end
 
